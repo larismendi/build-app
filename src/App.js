@@ -1,24 +1,45 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import Auth from "./contexts/stores/Auth";
+import Navigation from "./navigation/Navigation";
+import {
+  ApolloProvider,
+  ApolloClient,
+  InMemoryCache,
+  HttpLink,
+} from '@apollo/client';
+
+let github = localStorage.github ? JSON.parse(localStorage.github) : "";
+const token = github.token ? github.token : "";
+
+const httpLink = new HttpLink({ 
+  uri: 'https://api.github.com/graphql',
+  headers: {
+    authorization: `Bearer ${token}`
+  }
+});
+
+const client = new ApolloClient({
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          project: {
+            merge: true,
+          }
+        }
+      }
+    }
+  }),
+  link: httpLink,
+});
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ApolloProvider client={client}>
+      <Auth>
+        <Navigation />
+      </Auth>
+    </ApolloProvider>
   );
 }
 
